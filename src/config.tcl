@@ -30,7 +30,7 @@ set ::env(BOTTOM_MARGIN_MULT) 2
 
 # absolute die size
 set ::env(FP_SIZING) absolute
-set ::env(DIE_AREA) "0 0 1000 1000"
+set ::env(DIE_AREA) "0 0 640 640"
 
 ## THIS IS THE ONLY LINE YOU CAN EDIT
 set ::env(FP_CORE_UTIL) 45
