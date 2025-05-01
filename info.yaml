@@ -3,7 +3,7 @@ project:
   source_files:
     - toplevel_chip.v
     - chip.sv
-    - decoder.v
+    - sha256.sv
   top_module:  "toplevel_chip"
 
 # As everyone will have access to all designs, try to make it easy for someone new to your design to know what
@@ -13,11 +13,11 @@ project:
 #
 # This info will be automatically collected and used to make a datasheet for the chip.
 documentation: 
-  author:       "PLACEHOLDER"      # Your name
+  author:       "Chenrong Gu"      # Your name
   discord:      ""      # Your discord handle
-  title:        "PLACEHOLDER"      # Project title
-  description:  "PLACEHOLDER"      # Short description of what your project does
-  how_it_works: "PLACEHOLDER"      # Longer description of how the project works
+  title:        "SHA256 Encryptor"      # Project title
+  description:  "A SHA256 encryptor that transfers input data to 256-bit output hash value"      # Short description of what your project does
+  how_it_works: "This module will read 640 bits from input 10 by 10 when it sees start signal. The start signal is set during the 64 cycles of input. The input must be fixed 640 bits long. That means, the module will not start computation until it sees full 64 cycles of set start signal. Then, it will have internal storage of 2 512-bit message blocks and logics to calculate the SHA256 value of the input message. Then, after the computation, write the 256-bit hash value to the output 10 by 10, with the last 4 bits padded with 0."      # Longer description of how the project works
   how_to_test:  "PLACEHOLDER"      # Instructions on how someone could test your project, include things like what buttons do what and how to set the clock if needed
   external_hw:  "PLACEHOLDER"      # Describe any external hardware needed
   language:     "verilog" # other examples include Verilog, Amaranth, VHDL, etc
