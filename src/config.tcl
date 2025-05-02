@@ -36,7 +36,7 @@ set ::env(DIE_AREA) "0 0 1000 1000"
 set ::env(FP_CORE_UTIL) 45
 
 set ::env(PL_BASIC_PLACEMENT) 0
-set ::env(PL_TARGET_DENSITY) 0.40
+set ::env(PL_TARGET_DENSITY) 0.60
 
 ## set ::env(PL_BASIC_PLACEMENT) {1}
 
