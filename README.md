@@ -46,14 +46,18 @@ An IO table listing all of your inputs and outputs and their function, like the 
 
 | Input/Output	| Description|																
 |-------------|--------------------------------------------------|
-| io_in[0]    | choose vga mode, when 0 640x480. When 1, 800x480 |
-| io_in[11:1] | unused                                           |
-| io_out[2:0] | Red channel                                      |
-| io_out[5:3] | Green channel                                    |
-| io_out[8:6] | Blue channel                                     |
-| io_out[9]   | HS, horizontal sync                              |
-| io_out[10]  | VS, vertical sync                                |
-| io_out[11]  | liveness check.  Toggles every couple of seconds |
+| io_in[0]    | start signal to start the entire system          |
+| io_in[1]    | valid_in signal, raise when input is valid       |
+| io_in[11:2] | message_in, data input                           |
+| io_out[0]   | valid_out signal, raise when output is valid     |
+| io_out[10:1]| hash_out, data output                            |
+
+## Verification
+
+A Cocotb testbench is provided in the /testbench folder. The testbench generates a random message and checks the output hash value. 
+You should see this output, which means the generated sha256 hash matches the correct hash:
+
+![image info](tb_output.png)
 
 ## How to Test
 
