@@ -49,13 +49,14 @@ set ::env(DECAP_CELL) "\
     sky130_fd_sc_hd__decap_3 \
     sky130_fd_sc_hd__decap_4 \
     sky130_fd_sc_hd__decap_6 \
-    sky130_fd_sc_hd__decap_8"
+    sky130_fd_sc_hd__decap_8 \
+    sky130_ef_sc_hd__decap_12"
 
 # clock
 set ::env(CLOCK_TREE_SYNTH) 1
 
 # period is in ns, so 30ns = 33MHz
-set ::env(CLOCK_PERIOD) "120"
+set ::env(CLOCK_PERIOD) "30"
 set ::env(CLOCK_PORT) {io_in[12]}
 
 # hold/slack margin

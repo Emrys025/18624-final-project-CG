@@ -46,12 +46,16 @@ end
 // digest buffers
 logic [31:0] H0, H1, H2, H3, H4, H5, H6, H7;
 logic [31:0] A, B, C, D, E, F, G, H;
+// pipeline registers
+// logic [31:0] A_t, B_t, C_t, D_t, E_t, F_t, G_t, H_t;
+logic [31:0] S_0, maj, S_1, ch;
 
-logic [6:0] process1_counter;
-logic [6:0] process2_counter;
+logic [7:0] process1_counter;
+logic [7:0] process2_counter;
 
 logic [5:0] out_counter;
 logic [259:0] out_buffer;
+logic padding_flag;
 
 // states
 localparam STATE_IDLE = 3'd0,
@@ -76,9 +80,12 @@ always @(posedge clk) begin
         // {W[0], W[1], W[2], W[3], W[4], W[5], W[6], W[7]} <= 512'd0;
         {H0, H1, H2, H3, H4, H5, H6, H7} <= 256'd0;
         {A, B, C, D, E, F, G, H} <= 256'd0;
-        process1_counter <= 7'd0;
-        process2_counter <= 7'd0;
+        // {A_t, B_t, C_t, D_t, E_t, F_t, G_t, H_t} <= 256'd0;
+        {S_0, maj, S_1, ch} <= 128'd0;
+        process1_counter <= 8'd0;
+        process2_counter <= 8'd0;
         out_counter <= 6'd0;
+        padding_flag <= 1'b0;
     end else begin
         case (state)
             STATE_IDLE: begin
@@ -120,17 +127,26 @@ always @(posedge clk) begin
             end
 
             STATE_PROCESSING1: begin
-                process1_counter <= process1_counter + 1;
                 if (process1_counter < 64) begin
-                    A <= H + (rightrotate(E,6) ^ rightrotate(E,11) ^ rightrotate(E,25)) + ((E & F) ^ (~E & G)) + k[process1_counter[5:0]] + W[process1_counter[5:0]]
-                        + (rightrotate(A,2) ^ rightrotate(A,13) ^ rightrotate(A,22)) + ((A & B) ^ (A & C) ^ (B & C));
-                    B <= A;
-                    C <= B;
-                    D <= C;
-                    E <= D + H + (rightrotate(E,6) ^ rightrotate(E,11) ^ rightrotate(E,25)) + ((E & F) ^ (~E & G)) + k[process1_counter[5:0]] + W[process1_counter[5:0]];
-                    F <= E;
-                    G <= F;
-                    H <= G;
+                    if (padding_flag == 1'b0) begin
+                        S_0 <= (rightrotate(A,2) ^ rightrotate(A,13) ^ rightrotate(A,22));
+                        maj <= (A & B) ^ (A & C) ^ (B & C);
+                        S_1 <= (rightrotate(E,6) ^ rightrotate(E,11) ^ rightrotate(E,25));
+                        ch <= (E & F) ^ (~E & G);
+                        padding_flag <= 1'b1;
+                    end
+                    else begin
+                        A <= H + S_1 + ch + k[process1_counter[5:0]] + W[process1_counter[5:0]] + S_0 + maj;
+                        B <= A;
+                        C <= B;
+                        D <= C;
+                        E <= D + H + S_1 + ch + k[process1_counter[5:0]] + W[process1_counter[5:0]];
+                        F <= E;
+                        G <= F;
+                        H <= G;
+                        padding_flag <= 1'b0;
+                        process1_counter <= process1_counter + 1;
+                    end
                 end
                 else if (process1_counter >= 64) begin
                     H0 <= H0 + A;
@@ -155,17 +171,26 @@ always @(posedge clk) begin
             end
 
             STATE_PROCESSING2: begin
-                process2_counter <= process2_counter + 1;
                 if (process2_counter < 64) begin
-                    A <= H + (rightrotate(E,6) ^ rightrotate(E,11) ^ rightrotate(E,25)) + ((E & F) ^ (~E & G)) + k[process2_counter[5:0]] + W[process2_counter[5:0]]
-                        + (rightrotate(A,2) ^ rightrotate(A,13) ^ rightrotate(A,22)) + ((A & B) ^ (A & C) ^ (B & C));
-                    B <= A;
-                    C <= B;
-                    D <= C;
-                    E <= D + H + (rightrotate(E,6) ^ rightrotate(E,11) ^ rightrotate(E,25)) + ((E & F) ^ (~E & G)) + k[process2_counter[5:0]] + W[process2_counter[5:0]];
-                    F <= E;
-                    G <= F;
-                    H <= G;
+                    if (padding_flag == 1'b0) begin
+                        S_0 <= (rightrotate(A,2) ^ rightrotate(A,13) ^ rightrotate(A,22));
+                        maj <= (A & B) ^ (A & C) ^ (B & C);
+                        S_1 <= (rightrotate(E,6) ^ rightrotate(E,11) ^ rightrotate(E,25));
+                        ch <= (E & F) ^ (~E & G);
+                        padding_flag <= 1'b1;
+                    end
+                    else begin
+                        A <= H + S_1 + ch + k[process2_counter[5:0]] + W[process2_counter[5:0]] + S_0 + maj;
+                        B <= A;
+                        C <= B;
+                        D <= C;
+                        E <= D + H + S_1 + ch + k[process2_counter[5:0]] + W[process2_counter[5:0]];
+                        F <= E;
+                        G <= F;
+                        H <= G;
+                        padding_flag <= 1'b0;
+                        process2_counter <= process2_counter + 1;
+                    end
                 end
                 else if (process2_counter >= 64) begin
                     H0 <= H0 + A;
