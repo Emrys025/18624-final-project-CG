@@ -36,7 +36,7 @@ set ::env(DIE_AREA) "0 0 1800 1800"
 set ::env(FP_CORE_UTIL) 40
 
 #set ::env(PL_BASIC_PLACEMENT) 0
-set ::env(PL_TARGET_DENSITY) 0.30
+set ::env(PL_TARGET_DENSITY) 0.35
 #set ::env(DIODE_INSERTION_STRATEGY) 3
 
 ## set ::env(PL_BASIC_PLACEMENT) {1}
@@ -56,7 +56,7 @@ set ::env(DECAP_CELL) "\
 set ::env(CLOCK_TREE_SYNTH) 1
 
 # period is in ns, so 30ns = 33MHz
-set ::env(CLOCK_PERIOD) "90"
+set ::env(CLOCK_PERIOD) "30"
 set ::env(CLOCK_PORT) {io_in[12]}
 
 # hold/slack margin
