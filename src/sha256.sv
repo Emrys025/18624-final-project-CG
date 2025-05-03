@@ -137,7 +137,7 @@ always @(posedge clk) begin
                         padding_flag <= 2'b01;
                     end
                     else if (padding_flag == 2'b01) begin
-                        temp1 <= H + S_1 + ch + S_0;
+                        temp1 <= S_1 + ch + S_0;
                         temp2 <= maj + k[process1_counter[5:0]] + W[process1_counter[5:0]];
                         temp3 <= D + H + S_1;
                         temp4 <= ch + k[process1_counter[5:0]] + W[process1_counter[5:0]];
@@ -145,7 +145,7 @@ always @(posedge clk) begin
                     end
                     else begin
                         // A <= H + S_1 + ch + k[process1_counter[5:0]] + W[process1_counter[5:0]] + S_0 + maj;
-                        A <= temp1 + temp2;
+                        A <= temp1 + temp2 + H;
                         B <= A;
                         C <= B;
                         D <= C;
@@ -190,7 +190,7 @@ always @(posedge clk) begin
                         padding_flag <= 2'b01;
                     end
                     else if (padding_flag == 2'b01) begin
-                        temp1 <= H + S_1 + ch + S_0;
+                        temp1 <= S_1 + ch + S_0;
                         temp2 <= maj + k[process2_counter[5:0]] + W[process2_counter[5:0]];
                         temp3 <= D + H + S_1;
                         temp4 <= ch + k[process2_counter[5:0]] + W[process2_counter[5:0]];
@@ -198,7 +198,7 @@ always @(posedge clk) begin
                     end
                     else begin
                         // A <= H + S_1 + ch + k[process2_counter[5:0]] + W[process2_counter[5:0]] + S_0 + maj;
-                        A <= temp1 + temp2;
+                        A <= temp1 + temp2 + H;
                         B <= A;
                         C <= B;
                         D <= C;
