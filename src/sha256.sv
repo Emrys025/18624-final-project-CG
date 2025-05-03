@@ -33,15 +33,15 @@ logic [511:0] input_blocks [2];
 logic [31:0] W [64];
 logic block_flag;
 
-always_comb begin : Words
-    for (int i = 0; i < 64; i++) begin
-        if (i < 16) begin
-            W[i] = input_blocks[block_flag][(15-i)*32 +:32];
-        end else begin
-            W[i] = W[i-16] + (rightrotate(W[i-15],7) ^ rightrotate(W[i-15],18) ^ (W[i-15] >> 3)) + W[i-7] + (rightrotate(W[i-2],17) ^ rightrotate(W[i-2],19) ^ (W[i-2] >> 10));
-        end
-    end
-end
+// always_comb begin : Words
+//     for (int i = 0; i < 64; i++) begin
+//         if (i < 16) begin
+//             W[i] = input_blocks[block_flag][(15-i)*32 +:32];
+//         end else begin
+//             W[i] = W[i-16] + (rightrotate(W[i-15],7) ^ rightrotate(W[i-15],18) ^ (W[i-15] >> 3)) + W[i-7] + (rightrotate(W[i-2],17) ^ rightrotate(W[i-2],19) ^ (W[i-2] >> 10));
+//         end
+//     end
+// end
 
 // digest buffers
 logic [31:0] H0, H1, H2, H3, H4, H5, H6, H7;
@@ -58,11 +58,15 @@ logic [5:0] out_counter;
 logic [259:0] out_buffer;
 logic [1:0] padding_flag;
 
+logic [6:0] waiting_counter;
+
 // states
 localparam STATE_IDLE = 3'd0,
            STATE_LOADING = 3'd1,
            STATE_PADDING = 3'd2,
+           STATE_WAITING_W_1 = 3'd7,
            STATE_PROCESSING1 = 3'd3,
+           STATE_WAITING_W_2= 3'd6,
            STATE_PROCESSING2 = 3'd4,
            STATE_DONE = 3'd5;
 logic [2:0] state;
@@ -88,6 +92,7 @@ always @(posedge clk) begin
         process2_counter <= 8'd0;
         out_counter <= 6'd0;
         padding_flag <= 2'b0;
+        waiting_counter <= 7'd0;
     end else begin
         case (state)
             STATE_IDLE: begin
@@ -125,7 +130,22 @@ always @(posedge clk) begin
                 F <= H5;
                 G <= H6;
                 H <= H7;
-                state <= STATE_PROCESSING1;
+                state <= STATE_WAITING_W_1;
+            end
+
+            STATE_WAITING_W_1: begin
+                waiting_counter <= waiting_counter + 1;
+                if (waiting_counter < 16) begin
+                    W[waiting_counter[5:0]] <= input_blocks[0][(15-waiting_counter[5:0])*32 +:32];
+                end 
+                else if (waiting_counter < 64) begin
+                    W[waiting_counter[5:0]] <= W[waiting_counter[5:0]-16] + (rightrotate(W[waiting_counter[5:0]-15],7) ^ rightrotate(W[waiting_counter[5:0]-15],18) ^ (W[waiting_counter[5:0]-15] >> 3)) + 
+                        W[waiting_counter[5:0]-7] + (rightrotate(W[waiting_counter[5:0]-2],17) ^ rightrotate(W[waiting_counter[5:0]-2],19) ^ (W[waiting_counter[5:0]-2] >> 10));
+                end
+                else begin
+                    waiting_counter <= 7'd0;
+                    state <= STATE_PROCESSING1;
+                end
             end
 
             STATE_PROCESSING1: begin
@@ -184,8 +204,23 @@ always @(posedge clk) begin
                     F <= H5 + F;
                     G <= H6 + G;
                     H <= H7 + H;
-                    state <= STATE_PROCESSING2;
+                    state <= STATE_WAITING_W_2;
                     block_flag <= 1'b1;
+                end
+            end
+
+            STATE_WAITING_W_2: begin
+                waiting_counter <= waiting_counter + 1;
+                if (waiting_counter < 16) begin
+                    W[waiting_counter[5:0]] <= input_blocks[1][(15-waiting_counter[5:0])*32 +:32];
+                end 
+                else if (waiting_counter < 64) begin
+                    W[waiting_counter[5:0]] <= W[waiting_counter[5:0]-16] + (rightrotate(W[waiting_counter[5:0]-15],7) ^ rightrotate(W[waiting_counter[5:0]-15],18) ^ (W[waiting_counter[5:0]-15] >> 3)) + 
+                        W[waiting_counter[5:0]-7] + (rightrotate(W[waiting_counter[5:0]-2],17) ^ rightrotate(W[waiting_counter[5:0]-2],19) ^ (W[waiting_counter[5:0]-2] >> 10));
+                end
+                else begin
+                    waiting_counter <= 7'd0;
+                    state <= STATE_PROCESSING2;
                 end
             end
 
