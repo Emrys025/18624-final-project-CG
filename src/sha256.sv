@@ -49,7 +49,7 @@ logic [31:0] A, B, C, D, E, F, G, H;
 // pipeline registers
 // logic [31:0] A_t, B_t, C_t, D_t, E_t, F_t, G_t, H_t;
 logic [31:0] S_0, maj, S_1, ch;
-logic [31:0] temp1, temp2, temp3, temp4;
+logic [31:0] temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8;
 
 logic [7:0] process1_counter;
 logic [7:0] process2_counter;
@@ -83,6 +83,7 @@ always @(posedge clk) begin
         {A, B, C, D, E, F, G, H} <= 256'd0;
         {S_0, maj, S_1, ch} <= 128'd0;
         {temp1, temp2, temp3, temp4} <= 128'd0;
+        {temp5, temp6, temp7, temp8} <= 128'd0;
         process1_counter <= 8'd0;
         process2_counter <= 8'd0;
         out_counter <= 6'd0;
@@ -137,20 +138,28 @@ always @(posedge clk) begin
                         padding_flag <= 2'b01;
                     end
                     else if (padding_flag == 2'b01) begin
-                        temp1 <= S_1 + ch + S_0;
-                        temp2 <= maj + k[process1_counter[5:0]] + W[process1_counter[5:0]];
-                        temp3 <= D + H + S_1;
-                        temp4 <= ch + k[process1_counter[5:0]] + W[process1_counter[5:0]];
+                        temp1 <= S_1 + ch;
+                        temp2 <= S_0 + maj;
+                        temp3 <= k[process1_counter[5:0]] + W[process1_counter[5:0]];
+                        temp4 <= D + H;
+                        temp5 <= S_1 + ch;
+                        // temp4 <= k[process1_counter[5:0]] + W[process1_counter[5:0]];
                         padding_flag <= 2'b10;
+                    end
+                    else if (padding_flag == 2'b10) begin
+                        temp6 <= temp1 + temp2;
+                        temp7 <= temp3 + H;
+                        temp8 <= temp4 + temp5;
+                        padding_flag <= 2'b11;
                     end
                     else begin
                         // A <= H + S_1 + ch + k[process1_counter[5:0]] + W[process1_counter[5:0]] + S_0 + maj;
-                        A <= temp1 + temp2 + H;
+                        A <= temp6 + temp7;
                         B <= A;
                         C <= B;
                         D <= C;
                         // E <= D + H + S_1 + ch + k[process1_counter[5:0]] + W[process1_counter[5:0]];
-                        E <= temp3 + temp4;
+                        E <= temp3 + temp8;
                         F <= E;
                         G <= F;
                         H <= G;
@@ -190,20 +199,28 @@ always @(posedge clk) begin
                         padding_flag <= 2'b01;
                     end
                     else if (padding_flag == 2'b01) begin
-                        temp1 <= S_1 + ch + S_0;
-                        temp2 <= maj + k[process2_counter[5:0]] + W[process2_counter[5:0]];
-                        temp3 <= D + H + S_1;
-                        temp4 <= ch + k[process2_counter[5:0]] + W[process2_counter[5:0]];
+                        temp1 <= S_1 + ch;
+                        temp2 <= S_0 + maj;
+                        temp3 <= k[process2_counter[5:0]] + W[process2_counter[5:0]];
+                        temp4 <= D + H;
+                        temp5 <= S_1 + ch;
+                        // temp4 <= k[process1_counter[5:0]] + W[process1_counter[5:0]];
                         padding_flag <= 2'b10;
+                    end
+                    else if (padding_flag == 2'b10) begin
+                        temp6 <= temp1 + temp2;
+                        temp7 <= temp3 + H;
+                        temp8 <= temp4 + temp5;
+                        padding_flag <= 2'b11;
                     end
                     else begin
                         // A <= H + S_1 + ch + k[process2_counter[5:0]] + W[process2_counter[5:0]] + S_0 + maj;
-                        A <= temp1 + temp2 + H;
+                        A <= temp6 + temp7;
                         B <= A;
                         C <= B;
                         D <= C;
                         // E <= D + H + S_1 + ch + k[process2_counter[5:0]] + W[process2_counter[5:0]];
-                        E <= temp3 + temp4;
+                        E <= temp3 + temp8;
                         F <= E;
                         G <= F;
                         H <= G;
