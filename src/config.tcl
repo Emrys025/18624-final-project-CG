@@ -30,7 +30,7 @@ set ::env(BOTTOM_MARGIN_MULT) 2
 
 # absolute die size
 set ::env(FP_SIZING) absolute
-set ::env(DIE_AREA) "0 0 1800 1800"
+set ::env(DIE_AREA) "0 0 1700 1700"
 
 ## THIS IS THE ONLY LINE YOU CAN EDIT
 set ::env(FP_CORE_UTIL) 45
@@ -49,7 +49,8 @@ set ::env(DECAP_CELL) "\
     sky130_fd_sc_hd__decap_3 \
     sky130_fd_sc_hd__decap_4 \
     sky130_fd_sc_hd__decap_6 \
-    sky130_fd_sc_hd__decap_8"
+    sky130_fd_sc_hd__decap_8 \
+    sky130_ef_sc_hd__decap_12"
 
 # clock
 set ::env(CLOCK_TREE_SYNTH) 1
