@@ -42,6 +42,8 @@ A SHA256 encryptor that transfers input data to 256-bit output hash value
 
 This module will read 640 bits from input 10 by 10 when it sees start signal. The start signal is set during the 64 cycles of input. The input must be fixed 640 bits long. That means, the module will not start computation until it sees full 64 cycles of set start signal. Then, it will have internal storage of 2 512-bit message blocks and logics to calculate the SHA256 value of the input message. Then, after the computation, write the 256-bit hash value to the output 10 by 10, with the last 4 bits padded with 0.
 
+The majority of the area is dedicated to the registers required during the cumputation. In the future, if area is more constrained, we can make the input width smaller.
+
 ## IO
 
 An IO table listing all of your inputs and outputs and their function, like the one below:
