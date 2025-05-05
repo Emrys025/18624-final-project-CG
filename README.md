@@ -38,7 +38,9 @@ This is an example outline you can modify and use in your final project submissi
 
 ## Project Name
 
-A short description of what your project does and how it works. Feel free to include images
+A SHA256 encryptor that transfers input data to 256-bit output hash value
+
+This module will read 640 bits from input 10 by 10 when it sees start signal. The start signal is set during the 64 cycles of input. The input must be fixed 640 bits long. That means, the module will not start computation until it sees full 64 cycles of set start signal. Then, it will have internal storage of 2 512-bit message blocks and logics to calculate the SHA256 value of the input message. Then, after the computation, write the 256-bit hash value to the output 10 by 10, with the last 4 bits padded with 0.
 
 ## IO
 
@@ -61,4 +63,4 @@ You should see this output, which means the generated sha256 hash matches the co
 
 ## How to Test
 
-A short description of how to test the design post-tapeout
+Using a microcontroller or FPGA to input 640-bit messages, check whether the output of the module matches the expected sha256 hash
