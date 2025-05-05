@@ -52,7 +52,7 @@ logic [31:0] S_0, maj, S_1, ch;
 logic [31:0] temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8;
 
 logic [7:0] process1_counter;
-logic [7:0] process2_counter;
+// logic [7:0] process2_counter;
 
 logic [5:0] out_counter;
 logic [259:0] out_buffer;
@@ -66,8 +66,8 @@ localparam STATE_IDLE = 3'd0,
            STATE_PADDING = 3'd2,
            STATE_WAITING_W_1 = 3'd7,
            STATE_PROCESSING1 = 3'd3,
-           STATE_WAITING_W_2= 3'd6,
-           STATE_PROCESSING2 = 3'd4,
+        //    STATE_WAITING_W_2= 3'd6,
+        //    STATE_PROCESSING2 = 3'd4,
            STATE_DONE = 3'd5;
 logic [2:0] state;
 
@@ -89,7 +89,7 @@ always @(posedge clk) begin
         {temp1, temp2, temp3, temp4} <= 128'd0;
         {temp5, temp6, temp7, temp8} <= 128'd0;
         process1_counter <= 8'd0;
-        process2_counter <= 8'd0;
+        // process2_counter <= 8'd0;
         out_counter <= 6'd0;
         padding_flag <= 2'b0;
         waiting_counter <= 7'd0;
@@ -136,7 +136,7 @@ always @(posedge clk) begin
             STATE_WAITING_W_1: begin
                 waiting_counter <= waiting_counter + 1;
                 if (waiting_counter < 16) begin
-                    W[waiting_counter[5:0]] <= input_blocks[0][(15-waiting_counter[5:0])*32 +:32];
+                    W[waiting_counter[5:0]] <= input_blocks[block_flag][(15-waiting_counter[5:0])*32 +:32];
                 end 
                 else if (waiting_counter < 64) begin
                     W[waiting_counter[5:0]] <= W[waiting_counter[5:0]-16] + (rightrotate(W[waiting_counter[5:0]-15],7) ^ rightrotate(W[waiting_counter[5:0]-15],18) ^ (W[waiting_counter[5:0]-15] >> 3)) + 
@@ -204,77 +204,83 @@ always @(posedge clk) begin
                     F <= H5 + F;
                     G <= H6 + G;
                     H <= H7 + H;
-                    state <= STATE_WAITING_W_2;
-                    block_flag <= 1'b1;
-                end
-            end
-
-            STATE_WAITING_W_2: begin
-                waiting_counter <= waiting_counter + 1;
-                if (waiting_counter < 16) begin
-                    W[waiting_counter[5:0]] <= input_blocks[1][(15-waiting_counter[5:0])*32 +:32];
-                end 
-                else if (waiting_counter < 64) begin
-                    W[waiting_counter[5:0]] <= W[waiting_counter[5:0]-16] + (rightrotate(W[waiting_counter[5:0]-15],7) ^ rightrotate(W[waiting_counter[5:0]-15],18) ^ (W[waiting_counter[5:0]-15] >> 3)) + 
-                        W[waiting_counter[5:0]-7] + (rightrotate(W[waiting_counter[5:0]-2],17) ^ rightrotate(W[waiting_counter[5:0]-2],19) ^ (W[waiting_counter[5:0]-2] >> 10));
-                end
-                else begin
-                    waiting_counter <= 7'd0;
-                    state <= STATE_PROCESSING2;
-                end
-            end
-
-            STATE_PROCESSING2: begin
-                if (process2_counter < 64) begin
-                    if (padding_flag == 2'b00) begin
-                        S_0 <= (rightrotate(A,2) ^ rightrotate(A,13) ^ rightrotate(A,22));
-                        maj <= (A & B) ^ (A & C) ^ (B & C);
-                        S_1 <= (rightrotate(E,6) ^ rightrotate(E,11) ^ rightrotate(E,25));
-                        ch <= (E & F) ^ (~E & G);
-                        padding_flag <= 2'b01;
-                    end
-                    else if (padding_flag == 2'b01) begin
-                        temp1 <= S_1 + ch;
-                        temp2 <= S_0 + maj;
-                        temp3 <= k[process2_counter[5:0]] + W[process2_counter[5:0]];
-                        temp4 <= D + H;
-                        temp5 <= S_1 + ch;
-                        // temp4 <= k[process1_counter[5:0]] + W[process1_counter[5:0]];
-                        padding_flag <= 2'b10;
-                    end
-                    else if (padding_flag == 2'b10) begin
-                        temp6 <= temp1 + temp2;
-                        temp7 <= temp3 + H;
-                        temp8 <= temp4 + temp5;
-                        padding_flag <= 2'b11;
+                    process1_counter <= 8'd0;
+                    if (block_flag == 1'b0) begin
+                        block_flag <= 1'b1;
+                        state <= STATE_WAITING_W_1;
                     end
                     else begin
-                        // A <= H + S_1 + ch + k[process2_counter[5:0]] + W[process2_counter[5:0]] + S_0 + maj;
-                        A <= temp6 + temp7;
-                        B <= A;
-                        C <= B;
-                        D <= C;
-                        // E <= D + H + S_1 + ch + k[process2_counter[5:0]] + W[process2_counter[5:0]];
-                        E <= temp3 + temp8;
-                        F <= E;
-                        G <= F;
-                        H <= G;
-                        padding_flag <= 2'b00;
-                        process2_counter <= process2_counter + 1;
+                        state <= STATE_DONE;
                     end
                 end
-                else if (process2_counter >= 64) begin
-                    H0 <= H0 + A;
-                    H1 <= H1 + B;
-                    H2 <= H2 + C;
-                    H3 <= H3 + D;
-                    H4 <= H4 + E;
-                    H5 <= H5 + F;
-                    H6 <= H6 + G;
-                    H7 <= H7 + H;
-                    state <= STATE_DONE;
-                end
             end
+
+            // STATE_WAITING_W_2: begin
+            //     waiting_counter <= waiting_counter + 1;
+            //     if (waiting_counter < 16) begin
+            //         W[waiting_counter[5:0]] <= input_blocks[1][(15-waiting_counter[5:0])*32 +:32];
+            //     end 
+            //     else if (waiting_counter < 64) begin
+            //         W[waiting_counter[5:0]] <= W[waiting_counter[5:0]-16] + (rightrotate(W[waiting_counter[5:0]-15],7) ^ rightrotate(W[waiting_counter[5:0]-15],18) ^ (W[waiting_counter[5:0]-15] >> 3)) + 
+            //             W[waiting_counter[5:0]-7] + (rightrotate(W[waiting_counter[5:0]-2],17) ^ rightrotate(W[waiting_counter[5:0]-2],19) ^ (W[waiting_counter[5:0]-2] >> 10));
+            //     end
+            //     else begin
+            //         waiting_counter <= 7'd0;
+            //         state <= STATE_PROCESSING2;
+            //     end
+            // end
+
+            // STATE_PROCESSING2: begin
+            //     if (process2_counter < 64) begin
+            //         if (padding_flag == 2'b00) begin
+            //             S_0 <= (rightrotate(A,2) ^ rightrotate(A,13) ^ rightrotate(A,22));
+            //             maj <= (A & B) ^ (A & C) ^ (B & C);
+            //             S_1 <= (rightrotate(E,6) ^ rightrotate(E,11) ^ rightrotate(E,25));
+            //             ch <= (E & F) ^ (~E & G);
+            //             padding_flag <= 2'b01;
+            //         end
+            //         else if (padding_flag == 2'b01) begin
+            //             temp1 <= S_1 + ch;
+            //             temp2 <= S_0 + maj;
+            //             temp3 <= k[process2_counter[5:0]] + W[process2_counter[5:0]];
+            //             temp4 <= D + H;
+            //             temp5 <= S_1 + ch;
+            //             // temp4 <= k[process1_counter[5:0]] + W[process1_counter[5:0]];
+            //             padding_flag <= 2'b10;
+            //         end
+            //         else if (padding_flag == 2'b10) begin
+            //             temp6 <= temp1 + temp2;
+            //             temp7 <= temp3 + H;
+            //             temp8 <= temp4 + temp5;
+            //             padding_flag <= 2'b11;
+            //         end
+            //         else begin
+            //             // A <= H + S_1 + ch + k[process2_counter[5:0]] + W[process2_counter[5:0]] + S_0 + maj;
+            //             A <= temp6 + temp7;
+            //             B <= A;
+            //             C <= B;
+            //             D <= C;
+            //             // E <= D + H + S_1 + ch + k[process2_counter[5:0]] + W[process2_counter[5:0]];
+            //             E <= temp3 + temp8;
+            //             F <= E;
+            //             G <= F;
+            //             H <= G;
+            //             padding_flag <= 2'b00;
+            //             process2_counter <= process2_counter + 1;
+            //         end
+            //     end
+            //     else if (process2_counter >= 64) begin
+            //         H0 <= H0 + A;
+            //         H1 <= H1 + B;
+            //         H2 <= H2 + C;
+            //         H3 <= H3 + D;
+            //         H4 <= H4 + E;
+            //         H5 <= H5 + F;
+            //         H6 <= H6 + G;
+            //         H7 <= H7 + H;
+            //         state <= STATE_DONE;
+            //     end
+            // end
 
             STATE_DONE: begin
                 if (out_counter == 0) begin
